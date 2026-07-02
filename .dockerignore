@@ -1,0 +1,12 @@
+.git
+.env
+.env.local
+node_modules
+.next
+__pycache__
+*.pyc
+uploads
+exports
+.pytest_cache
+.mypy_cache
+.ruff_cache

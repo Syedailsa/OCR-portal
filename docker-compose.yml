@@ -1,0 +1,108 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-ocr_portal}
+      POSTGRES_USER: ${POSTGRES_USER:-ocr_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-ocr_user} -d ${POSTGRES_DB:-ocr_portal}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./apps/api
+    env_file:
+      - ./.env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://ocr_user:change-me@postgres:5432/ocr_portal}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      APP_URL: ${APP_URL:-https://ocr-portal.27.jugaar.ai}
+      API_URL: ${API_URL:-https://api.ocr-portal.27.jugaar.ai}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://ocr-portal.27.jugaar.ai}
+      UPLOAD_DIR: ${UPLOAD_DIR:-/data/uploads}
+      EXPORT_DIR: ${EXPORT_DIR:-/data/exports}
+    volumes:
+      - uploads-data:/data/uploads
+      - exports-data:/data/exports
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./apps/api
+    command: ["celery", "-A", "worker.celery_app:celery_app", "worker", "-l", "INFO"]
+    env_file:
+      - ./.env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://ocr_user:change-me@postgres:5432/ocr_portal}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      UPLOAD_DIR: ${UPLOAD_DIR:-/data/uploads}
+      EXPORT_DIR: ${EXPORT_DIR:-/data/exports}
+    volumes:
+      - uploads-data:/data/uploads
+      - exports-data:/data/exports
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./apps/web
+    env_file:
+      - ./.env
+    environment:
+      NEXT_PUBLIC_APP_URL: ${APP_URL:-https://ocr-portal.27.jugaar.ai}
+      NEXT_PUBLIC_API_URL: ${API_URL:-https://api.ocr-portal.27.jugaar.ai}
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      web:
+        condition: service_started
+      api:
+        condition: service_started
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:
+  uploads-data:
+  exports-data:
+  caddy-data:
+  caddy-config:
