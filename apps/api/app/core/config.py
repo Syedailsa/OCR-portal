@@ -12,7 +12,8 @@ class Settings(BaseSettings):
     cors_origin: str = Field(default="http://localhost:3000", alias="CORS_ORIGIN")
 
     database_url: str = Field(alias="DATABASE_URL")
-    redis_url: str = Field(default="redis://localhost:6379/0", alias="REDIS_URL")
+    redis_url: str | None = Field(default=None, alias="REDIS_URL")
+    queue_mode: str = Field(default="inline", alias="QUEUE_MODE")
 
     jwt_secret: str = Field(alias="JWT_SECRET")
     jwt_refresh_secret: str = Field(alias="JWT_REFRESH_SECRET")

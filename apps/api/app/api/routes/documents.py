@@ -12,8 +12,8 @@ from app.core.config import get_settings
 from app.models.document import Document
 from app.schemas.document import DocumentResponse
 from app.services.export import build_docx_bytes, build_pdf_bytes
+from app.services.jobs import queue_or_process_document
 from app.services.storage import document_path, ensure_directories, export_path
-from worker.tasks import process_document
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -75,7 +75,12 @@ async def upload_document(
     db.commit()
     db.refresh(document)
 
-    process_document.delay(str(document.id))
+    try:
+        queue_or_process_document(db, document.id)
+    except Exception:
+        db.refresh(document)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="OCR processing failed")
+    db.refresh(document)
     return _to_response(document)
 
 
@@ -124,7 +129,11 @@ def reprocess_document(
     document.status = "queued"
     document.error_message = None
     db.commit()
-    process_document.delay(str(document.id))
+    try:
+        queue_or_process_document(db, document.id)
+    except Exception:
+        db.refresh(document)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="OCR reprocessing failed")
     db.refresh(document)
     return _to_response(document)
 

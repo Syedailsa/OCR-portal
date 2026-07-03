@@ -38,6 +38,10 @@ Use `develop` for feature work and `main` for deploys.
 3. PostgreSQL and Redis run as private Docker services.
 4. Caddy handles TLS for the subdomains automatically.
 
+## Minimal MVP path
+
+If Docker is unavailable, use `NO_DOCKER_DEPLOYMENT.md`.
+
 ## Services
 
 - Web app: `https://ocr-portal.27.jugaar.ai`
