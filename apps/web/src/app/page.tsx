@@ -2,28 +2,47 @@ import { OcrPortal } from '@/components/ocr-portal';
 
 export default function Page() {
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100">
-      <section className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 py-16">
-        <div className="max-w-3xl space-y-6">
-          <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">OCR Portal</p>
-          <h1 className="text-5xl font-semibold leading-tight text-white sm:text-6xl">
-            Production OCR pipeline for uploads, extraction, search, and export.
-          </h1>
-          <p className="text-lg leading-8 text-slate-300">
-            Frontend is wired to the API container. The backend, worker, PostgreSQL, and Redis run in Docker.
+    <main className="app-shell">
+      <div className="background-glow background-glow-left" />
+      <div className="background-glow background-glow-right" />
+
+      <header className="topbar">
+        <div>
+          <div className="brand">OCR Portal</div>
+          <div className="topbar-copy">Upload, extract, search, and export documents from one dashboard.</div>
+        </div>
+        <div className="topbar-badges">
+          <span className="pill">Production MVP</span>
+          <span className="pill pill-soft">FastAPI + Next.js</span>
+        </div>
+      </header>
+
+      <section className="hero">
+        <div className="hero-copy">
+          <div className="eyebrow">Built for the VPS deployment path</div>
+          <h1>Clean OCR workflow, clearer UI, and a simpler MVP path.</h1>
+          <p>
+            The app now runs in inline mode by default, so you can use it without Docker or Redis. Upload a file,
+            wait for OCR, search the extracted text, and export the result to Word or PDF.
           </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {['JWT auth', 'Async OCR jobs', 'VPS disk storage', 'PostgreSQL search'].map((item) => (
-              <div key={item} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-200">
-                {item}
-              </div>
-            ))}
+        </div>
+        <div className="hero-stats">
+          <div className="stat-card">
+            <span>Upload limit</span>
+            <strong>20 MB</strong>
+          </div>
+          <div className="stat-card">
+            <span>Page limit</span>
+            <strong>20 pages</strong>
+          </div>
+          <div className="stat-card">
+            <span>Queue mode</span>
+            <strong>Inline</strong>
           </div>
         </div>
-        <div className="mt-12">
-          <OcrPortal />
-        </div>
       </section>
+
+      <OcrPortal />
     </main>
   );
 }

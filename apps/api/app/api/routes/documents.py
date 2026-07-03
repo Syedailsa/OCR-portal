@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -155,7 +155,7 @@ def export_word(
     document_id: uuid.UUID,
     db: Session = Depends(get_database),
     subject: str = Depends(get_current_subject),
-) -> dict[str, str]:
+) -> FileResponse:
     document = db.scalar(select(Document).where(Document.id == document_id, Document.owner_id == uuid.UUID(subject)))
     if document is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
@@ -163,7 +163,11 @@ def export_word(
     ensure_directories(settings.export_dir)
     path = export_path(settings.export_dir, str(document.id), "docx")
     path.write_bytes(build_docx_bytes(document.original_filename, document.extracted_text))
-    return {"download_url": f"{settings.api_url}/exports/{document.id}/download"}
+    return FileResponse(
+        path,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        filename=f"{document.original_filename.rsplit('.', 1)[0]}.docx",
+    )
 
 
 @router.post("/{document_id}/export/pdf")
@@ -171,7 +175,7 @@ def export_pdf(
     document_id: uuid.UUID,
     db: Session = Depends(get_database),
     subject: str = Depends(get_current_subject),
-) -> dict[str, str]:
+) -> FileResponse:
     document = db.scalar(select(Document).where(Document.id == document_id, Document.owner_id == uuid.UUID(subject)))
     if document is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
@@ -179,22 +183,4 @@ def export_pdf(
     ensure_directories(settings.export_dir)
     path = export_path(settings.export_dir, str(document.id), "pdf")
     path.write_bytes(build_pdf_bytes(document.original_filename, document.extracted_text))
-    return {"download_url": f"{settings.api_url}/exports/{document.id}/download?format=pdf"}
-
-
-@router.get("/{document_id}/download")
-def download_export(
-    document_id: uuid.UUID,
-    format: str = Query(default="docx", pattern="^(docx|pdf)$"),
-    db: Session = Depends(get_database),
-    subject: str = Depends(get_current_subject),
-):
-    document = db.scalar(select(Document).where(Document.id == document_id, Document.owner_id == uuid.UUID(subject)))
-    if document is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
-    settings = get_settings()
-    path = export_path(settings.export_dir, str(document.id), format)
-    if not path.exists():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Export not generated yet")
-    media_type = "application/pdf" if format == "pdf" else "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    return FileResponse(path, media_type=media_type, filename=path.name)
+    return FileResponse(path, media_type="application/pdf", filename=f"{document.original_filename.rsplit('.', 1)[0]}.pdf")
