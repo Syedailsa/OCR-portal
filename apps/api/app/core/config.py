@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import List
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -9,7 +10,10 @@ class Settings(BaseSettings):
 
     app_url: str = Field(default="http://localhost:3000", alias="APP_URL")
     api_url: str = Field(default="http://localhost:8000", alias="API_URL")
-    cors_origin: str = Field(default="http://localhost:3000", alias="CORS_ORIGIN")
+    cors_origin: str = Field(
+        default="https://ocr-portal.27.jugaar.ai,https://api.ocr-portal.27.jugaar.ai,http://localhost:3000",
+        alias="CORS_ORIGIN",
+    )
 
     database_url: str = Field(alias="DATABASE_URL")
     redis_url: str | None = Field(default=None, alias="REDIS_URL")
@@ -27,6 +31,9 @@ class Settings(BaseSettings):
     ocr_timeout_seconds: int = Field(default=300, alias="OCR_TIMEOUT_SECONDS")
 
     log_level: str = Field(default="info", alias="LOG_LEVEL")
+
+    def cors_origins(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origin.split(",") if origin.strip()]
 
 
 @lru_cache

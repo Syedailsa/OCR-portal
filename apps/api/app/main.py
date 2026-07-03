@@ -16,7 +16,7 @@ ensure_directories(settings.upload_dir, settings.export_dir)
 app = FastAPI(title="OCR Portal API", version="0.1.0")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.cors_origin],
+    allow_origins=settings.cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

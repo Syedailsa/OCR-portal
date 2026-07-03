@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type TokenResponse = {
   access_token: string;
@@ -20,7 +20,7 @@ type DocumentItem = {
   error_message: string | null;
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.ocr-portal.27.jugaar.ai';
 
 export function OcrPortal() {
   const [email, setEmail] = useState('');
@@ -43,12 +43,18 @@ export function OcrPortal() {
     }
   }, []);
 
-  const authHeaders = useMemo(() => ({ Authorization: token ? `Bearer ${token}` : '' }), [token]);
-
   async function apiJson<T>(url: string, init?: RequestInit): Promise<{ ok: boolean; data: T & { detail?: string }; response: Response }> {
-    const response = await fetch(url, init);
-    const data = (await response.json()) as T & { detail?: string };
-    return { ok: response.ok, data, response };
+    try {
+      const response = await fetch(url, init);
+      const data = (await response.json()) as T & { detail?: string };
+      return { ok: response.ok, data, response };
+    } catch {
+      return {
+        ok: false,
+        data: { detail: 'Network error. Check API URL or CORS.' } as T & { detail?: string },
+        response: new Response(null, { status: 500 }),
+      };
+    }
   }
 
   function persistToken(accessToken: string) {
@@ -125,7 +131,7 @@ export function OcrPortal() {
     form.append('file', pendingFile);
     const response = await fetch(`${API_URL}/documents/upload`, {
       method: 'POST',
-      headers: authHeaders,
+      headers: { Authorization: `Bearer ${token}` },
       body: form,
     });
     const data = (await response.json()) as DocumentItem & { detail?: string };
