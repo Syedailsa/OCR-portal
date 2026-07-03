@@ -13,6 +13,7 @@
 ## Required env
 
 Copy from `.env.example` and set your real values in the panel.
+`REDIS_URL` is internal to Docker and should stay `redis://redis:6379/0` unless you replace Redis with a managed service.
 
 ## VPS panel steps
 
