@@ -4,7 +4,7 @@ Production-ready OCR portal scaffold.
 
 ## Stack
 
-- Web: Next.js
+- Web: static Node server
 - API: FastAPI
 - Worker: Celery
 - Database: PostgreSQL
@@ -18,7 +18,7 @@ Production-ready OCR portal scaffold.
 2. Point DNS:
    - `ocr-portal.27.jugaar.ai`
    - `api.ocr-portal.27.jugaar.ai`
-3. Run `docker compose up -d --build`.
+3. Start the web app with `npm start`.
 
 ## Git deploy flow
 
@@ -35,8 +35,9 @@ Use `develop` for feature work and `main` for deploys.
 
 1. No SSH access is required for the current setup.
 2. Files are stored on the VPS disk.
-3. PostgreSQL and Redis run as private Docker services.
-4. Caddy handles TLS for the subdomains automatically.
+3. PostgreSQL can be local or managed.
+4. Redis is optional and only needed for queue mode.
+5. Caddy handles TLS for the subdomains automatically.
 
 ## Minimal MVP path
 

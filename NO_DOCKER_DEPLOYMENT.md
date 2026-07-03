@@ -4,7 +4,7 @@ This is the minimal MVP path.
 
 ## Services
 
-- Frontend: Next.js on port `3000`
+- Frontend: static Node server on port `3000`
 - API: FastAPI on port `8000`
 - Database: PostgreSQL on the VPS or managed PostgreSQL
 - Queue: disabled by default
@@ -42,3 +42,5 @@ Web:
 ```bash
 npm run start -- --hostname 0.0.0.0 --port 3000
 ```
+
+If the panel only supports one web process, use `npm start` for the static frontend and keep the API on `8000`.
