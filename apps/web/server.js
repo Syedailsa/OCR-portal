@@ -42,7 +42,12 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  const assetPath = path.join(publicDir, pathname === '/' ? '/index.html' : pathname);
+  const route = pathname === '/' || pathname === '/login.html'
+    ? '/login.html'
+    : pathname === '/portal' || pathname === '/portal.html'
+      ? '/index.html'
+      : pathname;
+  const assetPath = path.join(publicDir, route);
   const resolved = path.resolve(assetPath);
   if (!resolved.startsWith(path.resolve(publicDir))) {
     res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });

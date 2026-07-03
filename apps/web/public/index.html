@@ -99,6 +99,7 @@
       <div class="badges">
         <span class="pill">Production MVP</span>
         <span class="pill soft">FastAPI + Node static UI</span>
+        <button id="logout-btn" class="btn ghost" style="min-height:34px;padding:0 12px">Logout</button>
       </div>
     </header>
 
@@ -220,6 +221,11 @@
         docs: [],
         selected: null,
       };
+
+      if (!state.token) {
+        window.location.replace('/');
+        return;
+      }
 
       function setStatus(message) { els.status.textContent = message; }
       function setAuthPill() { els.authPill.textContent = state.token ? 'Signed in' : 'Signed out'; els.authPill.className = `status-pill ${state.token ? 'ok' : 'warn'}`; }
@@ -367,6 +373,10 @@
 
       els.loginBtn.addEventListener('click', () => login('login'));
       els.registerBtn.addEventListener('click', () => login('register'));
+      document.getElementById('logout-btn').addEventListener('click', () => {
+        localStorage.removeItem('ocr-access-token');
+        window.location.replace('/');
+      });
       els.uploadBtn.addEventListener('click', upload);
       els.clearBtn.addEventListener('click', () => { els.fileInput.value = ''; els.fileLabel.textContent = 'Choose a document to upload'; setStatus('File cleared'); });
       els.searchBtn.addEventListener('click', () => loadDocs(els.query.value.trim()));
